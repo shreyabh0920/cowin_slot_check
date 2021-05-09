@@ -6,6 +6,7 @@ Created on Thu May  6 16:15:09 2021
 """
 import requests
 import datetime
+from datetime import timedelta
 import json
 import pandas as pd
 import sched
@@ -20,16 +21,18 @@ from playsound import playsound
 
 
 
-def get_vaccine_availability(age_limit, dist_id, vacc):
+def get_vaccine_availability(age_limit, dist_id, vacc, inp_date):
     
-    base = datetime.datetime.today()
-    inp_date = base.strftime("%d-%m-%Y")
-    global a
-    a=a+1
-    print (a)
+    # base = datetime.datetime.today()
+    # tomorrow = base + timedelta(days = 1)
+    # inp_date = tomorrow.strftime("%d-%m-%Y")
+    #global a
+    #a=a+1
+    #print (a)
     #print(etag)
-    URL = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id={}&date={}&a={}".format(dist_id, inp_date,a)
-    print(URL)
+   
+    URL = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByDistrict?district_id={}&date={}".format(dist_id, inp_date)
+    
     headers_s = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
                  'Cache-Control': 'no-cache',
                  'origin':'https://www.cowin.gov.in',
@@ -43,11 +46,9 @@ def get_vaccine_availability(age_limit, dist_id, vacc):
     if response.status_code not in list(range(200,299)):
         print ("ERROR")
         playsound('.\\media\\error.mp3')
-    # elif response.status_code == 304:
-    #     exit()
                 
-       
-          
+        
+    print(URL)
     try:
         data = response.json()
         print(response.headers.get("ETag"))
@@ -56,52 +57,46 @@ def get_vaccine_availability(age_limit, dist_id, vacc):
         #print (response.json)
     except:
         print (response)
-        
-
-    center_list =data['centers']
+    session_list =data['sessions']
     
     
     print("searching...")
     #print(vacc)
     
-    for i in range(len(center_list)):
-        
-        session_list = center_list[i]['sessions']
-        for j in range(len(session_list)):
+    
+    for i in range(len(session_list)):
             if vacc == "ALL":
                 
-                if (session_list[j]['min_age_limit'] == age_limit) & (session_list[j]['available_capacity'] > 0):
+                if (session_list[i]['min_age_limit'] == age_limit) & (session_list[i]['available_capacity'] > 1):
                     # print (session_list[i])
-                    print (center_list[i]['pincode'],session_list[j]['vaccine'],center_list[i]['name']
-                           +"  available  ",session_list[j]['available_capacity'],"  ON ",session_list[j]['date'])
+                    print (session_list[i]['pincode'],session_list[i]['vaccine'],session_list[i]['name']
+                           +"  available  ",session_list[i]['available_capacity'],"  ON ",session_list[i]['date'])
                     
-                    playsound('.\\media\\alert.mp3')
                     playsound('.\\media\\alert.mp3')
             elif vacc != "ALL" :
                 
-                if (session_list[j]['min_age_limit'] == age_limit) & (session_list[j]['available_capacity'] > 0) & (session_list[j]['vaccine'] == vacc):
+                if (session_list[i]['min_age_limit'] == age_limit) & (session_list[i]['available_capacity'] > 1) & (session_list[i]['vaccine'] == vacc):
                     
-                    print (center_list[i]['pincode'],session_list[j]['vaccine'],center_list[i]['name']
-                           +"  available  ",session_list[j]['available_capacity'],"  ON ",session_list[j]['date'])
+                    print (session_list[i]['pincode'],session_list[i]['vaccine'],session_list[i]['name']
+                           +"  available  ",session_list[i]['available_capacity'],"  ON ",session_list[i]['date'])
                     
-                    playsound('.\\media\\alert.mp3')
                     playsound('.\\media\\alert.mp3')
                 
                 
-    
-    
+                
 
 
 if __name__ == "__main__":
+    
     age_limit = int(sys.argv[1])
     dist_id = int(sys.argv[2])
-    vacc = str(sys.argv[3])
-    a = 1
+    inp_date = str(sys.argv[3])
+    vacc = str(sys.argv[4])
     while True:
         
-        get_vaccine_availability(age_limit, dist_id, vacc)
+        get_vaccine_availability(age_limit, dist_id, inp_date, vacc)
         time.sleep(5)   
-            
+                
                 
 
         
